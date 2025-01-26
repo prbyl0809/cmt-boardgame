@@ -1,6 +1,9 @@
 table {
     border-collapse: collapse;
-    margin: 20px 0;
+    margin: 20px auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    overflow: hidden;
 }
 
 td {
@@ -8,7 +11,78 @@ td {
     height: 50px;
     text-align: center;
     vertical-align: middle;
-    border: 1px solid #000;
+    border: 1px solid #ddd;
     font-size: 20px;
+    font-weight: bold;
     cursor: pointer;
-  }
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+td:hover {
+    background-color: #f0f0f0;
+    transform: scale(1.1);
+}
+
+.highlight-C {
+    color: green;
+    background-color: #d4f8d4;
+    border: 1px solid #32cd32;
+    box-shadow: 0 0 2px green;
+}
+
+.highlight-M {
+    color: blue;
+    background-color: #d4e5f8;
+    border: 1px solid #4682b4;
+    box-shadow: 0 0 2px blue;
+}
+
+.highlight-T {
+    color: red;
+    background-color: #f8d4d4;
+    border: 1px solid #dc143c;
+    box-shadow: 0 0 2px red;
+}
+
+.score-display {
+    margin: 20px 0;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 18px;
+    text-align: center;
+    color: #333;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+button {
+    display: block;
+    margin: 20px auto;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+button:hover {
+    background-color: #0056b3;
+    transform: scale(1.03);
+}
+
+button:active {
+    background-color: #003f7f;
+}
+
+h1 {
+    font-size: 28px;
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}

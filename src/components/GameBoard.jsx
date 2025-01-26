@@ -9,14 +9,17 @@ const GameBoard = () => {
   const [currentChar, setCurrentChar] = useState("C");
   const [linesCount, setLinesCount] = useState(0);
   const [gameOver, setGameOver] = useState(false);
+  const [highlightedCells, setHighlightedCells] = useState([]);
 
   const handleCellClick = (row, col) => {
     if (grid[row][col] || gameOver) return;
 
-    const newGrid = [...grid];
-    newGrid[row][col] = currentChar;
+    const newGrid = grid.map((rowArr, rowIndex) =>
+      rowArr.map((cell, colIndex) => (rowIndex === row && colIndex === col ? currentChar : cell))
+    );
+
     setGrid(newGrid);
-    countLines();
+    checkAndHighlightMatches(newGrid);
 
     setCurrentChar(currentChar === "C" ? "M" : currentChar === "M" ? "T" : "C");
 
@@ -25,97 +28,111 @@ const GameBoard = () => {
     }
   };
 
-  const countLines = () => {
+  const checkAndHighlightMatches = (grid) => {
     const rowCount = grid.length;
     const colCount = grid[0].length;
-    let totalCount = 0;
+    let matchedCells = [];
+    let totalLines = 0;
 
-    function countMatchesInDiagonal(startRow, startCol, rowStep, colStep) {
+    const addCellsToHighlight = (cells) => {
+      matchedCells.push(...cells);
+      totalLines++;
+    };
+
+    const checkLine = (line, isRow, index) => {
       let current = null;
       let streak = 0;
-      let diagonalCount = 0;
+      let cells = [];
 
-      while (
-        startRow >= 0 &&
-        startRow < rowCount &&
-        startCol >= 0 &&
-        startCol < colCount
-      ) {
-        if (grid[startRow][startCol] === current) {
+      for (let i = 0; i < line.length; i++) {
+        const value = line[i];
+        if (value === current && value !== null) {
           streak++;
+          cells.push(isRow ? { row: index, col: i } : { row: i, col: index });
         } else {
-          current = grid[startRow][startCol];
+          if (streak >= 3) {
+            addCellsToHighlight(cells);
+          }
+          current = value;
           streak = 1;
+          cells = [isRow ? { row: index, col: i } : { row: i, col: index }];
         }
-
-        if (streak === 3) {
-          diagonalCount++;
-        }
-
-        startRow += rowStep;
-        startCol += colStep;
       }
+      if (streak >= 3) {
+        addCellsToHighlight(cells);
+      }
+    };
 
-      return diagonalCount;
-    }
+    const checkDiagonal = (startRow, startCol, rowStep, colStep) => {
+      let current = null;
+      let streak = 0;
+      let cells = [];
+      let row = startRow;
+      let col = startCol;
+
+      while (row >= 0 && row < rowCount && col >= 0 && col < colCount) {
+        const value = grid[row][col];
+        if (value === current && value !== null) {
+          streak++;
+          cells.push({ row, col });
+        } else {
+          if (streak >= 3) {
+            addCellsToHighlight(cells);
+          }
+          current = value;
+          streak = 1;
+          cells = [{ row, col }];
+        }
+
+        row += rowStep;
+        col += colStep;
+      }
+      if (streak >= 3) {
+        addCellsToHighlight(cells);
+      }
+    };
 
     for (let i = 0; i < rowCount; i++) {
-      let current = null;
-      let streak = 0;
-
-      for (let j = 0; j < colCount; j++) {
-        if (grid[i][j] === current) {
-          streak++;
-        } else {
-          current = grid[i][j];
-          streak = 1;
-        }
-
-        if (streak === 3) {
-          totalCount++;
-        }
-      }
+      checkLine(grid[i], true, i);
     }
 
     for (let j = 0; j < colCount; j++) {
-      let current = null;
-      let streak = 0;
-
-      for (let i = 0; i < rowCount; i++) {
-        if (grid[i][j] === current) {
-          streak++;
-        } else {
-          current = grid[i][j];
-          streak = 1;
-        }
-
-        if (streak === 3) {
-          totalCount++;
-        }
-      }
+      const column = grid.map((row) => row[j]);
+      checkLine(column, false, j);
     }
 
     for (let row = 0; row < rowCount; row++) {
-      totalCount += countMatchesInDiagonal(row, 0, 1, 1);
+      checkDiagonal(row, 0, 1, 1);
     }
     for (let col = 1; col < colCount; col++) {
-      totalCount += countMatchesInDiagonal(0, col, 1, 1);
+      checkDiagonal(0, col, 1, 1);
     }
 
     for (let row = 0; row < rowCount; row++) {
-      totalCount += countMatchesInDiagonal(row, 0, -1, 1);
+      checkDiagonal(row, 0, -1, 1);
     }
     for (let col = 1; col < colCount; col++) {
-      totalCount += countMatchesInDiagonal(rowCount - 1, col, -1, 1);
+      checkDiagonal(rowCount - 1, col, -1, 1);
     }
 
-    setLinesCount(totalCount);
-  }
+    const uniqueCells = matchedCells.filter(
+      (cell, index, self) =>
+        index ===
+        self.findIndex(
+          (c) => c.row === cell.row && c.col === cell.col
+        )
+    );
+
+    setHighlightedCells(uniqueCells);
+    setLinesCount(totalLines);
+  };
 
   const resetGame = () => {
     setGrid(initialGrid);
     setCurrentChar("C");
     setGameOver(false);
+    setHighlightedCells([]);
+    setLinesCount(0);
   };
 
   return (
@@ -128,8 +145,16 @@ const GameBoard = () => {
                 <td
                   key={`${rowIndex}-${colIndex}`}
                   onClick={() => handleCellClick(rowIndex, colIndex)}
+                  className={
+                    highlightedCells.some(
+                      (highlight) =>
+                        highlight.row === rowIndex && highlight.col === colIndex
+                    )
+                    ? `highlight-${cell}`
+                    : ""
+                  }
                 >
-                  {cell ? cell : ""}
+                  {cell || ""}
                 </td>
               ))}
             </tr>
